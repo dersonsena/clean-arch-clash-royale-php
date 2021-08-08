@@ -1,0 +1,9 @@
+vendor
+node_modules
+npm-debug.log
+.git
+.gitignore
+dist
+.docker
+.idea
+Dockerfile
