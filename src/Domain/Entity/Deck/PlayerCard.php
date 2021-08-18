@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Entity\Deck;
 
-use App\Domain\Exception\InvalidCardException;
+use App\Domain\ValueObject\Elixir;
+use App\Domain\ValueObject\Level;
 use RuntimeException;
 
 /**
@@ -14,14 +15,9 @@ use RuntimeException;
  */
 final class PlayerCard
 {
-    public const MIN_LEVEL = 1;
-    public const MAX_LEVEL = 13;
-    public const MIN_ELIXIR = 1;
-    public const MAX_ELIXIR = 9;
-
     private Card $card;
-    private int $level;
-    private int $elixir;
+    private Level $level;
+    private Elixir $elixir;
 
     private function __construct(array $values)
     {
@@ -32,22 +28,8 @@ final class PlayerCard
 
     public static function create(array $values): self
     {
-        if ($values['level'] > self::MAX_LEVEL) {
-            throw InvalidCardException::levelMaxLimitReached($values['level']);
-        }
-
-        if ($values['level'] < self::MIN_LEVEL) {
-            throw InvalidCardException::levelMinLimitReached($values['level']);
-        }
-
-        if ($values['elixir'] > self::MAX_ELIXIR) {
-            throw InvalidCardException::elixirMaxLimitReached($values['level']);
-        }
-
-        if ($values['elixir'] < self::MIN_ELIXIR) {
-            throw InvalidCardException::elixirMinLimitReached($values['level']);
-        }
-
+        $values['elixir'] = new Elixir($values['elixir']);
+        $values['level'] = new Level($values['level']);
         return new self($values);
     }
 
