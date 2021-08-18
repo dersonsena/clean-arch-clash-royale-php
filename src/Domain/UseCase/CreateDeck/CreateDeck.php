@@ -2,34 +2,44 @@
 
 namespace App\Domain\UseCase\CreateDeck;
 
-use App\Domain\Entity\Deck\Card;
-use App\Domain\Entity\Deck\Player;
 use App\Domain\Exception\DeckCapacityException;
 use App\Domain\Exception\DeckCardDuplicateException;
+use App\Domain\Repository\DeckRepository;
+use App\Domain\Repository\PlayerRepository;
 
 final class CreateDeck
 {
-    public function execute(InputData $inputData)
+    public function __construct(
+        private PlayerRepository $playerRepo,
+        private DeckRepository $deckRepo
+    ) {}
+
+    public function execute(InputData $inputData): OutputData
     {
-        $player = Player::create((array)$inputData->player);
-        $countCards = count($inputData->cards);
+        $countCards = count($inputData->cardIdList);
 
         if ($countCards > $inputData->capacity) {
             throw DeckCapacityException::capacityExceeded($inputData->capacity, $countCards);
         }
 
-        $names = array_map(fn ($card) => strtolower($card->name), $inputData->cards);
+        $duplicates = array_unique(array_diff_assoc($inputData->cardIdList, array_unique($inputData->cardIdList)));
 
-        if (count(array_unique($names)) < count($names)) {
+        if (!empty($duplicates)) {
             throw DeckCardDuplicateException::duplicateCards();
         }
 
-        foreach ($inputData->cards as $card) {
-            Card::create([
-                'name' => $card->name,
-                'level' => $card->level,
-                'elixir' => $card->elixir
-            ]);
-        }
+        $player = $this->playerRepo->getById($inputData->playerId);
+        $playerCards = $this->playerRepo->getCardsByIdList($inputData->cardIdList);
+        $deck = $this->deckRepo->save($player, $playerCards);
+
+        return OutputData::create([
+            'id' => $deck->id,
+            'elixirAverage' => $deck->getElixirAverage(),
+            'player' => PlayerModel::create([
+                'id' => $player->id,
+                'name' => $player->name,
+                'trophy' => $player->getTotalTrophies()
+            ])
+        ]);
     }
 }

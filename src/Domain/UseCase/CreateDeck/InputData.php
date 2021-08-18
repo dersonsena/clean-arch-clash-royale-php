@@ -2,26 +2,42 @@
 
 namespace App\Domain\UseCase\CreateDeck;
 
-use stdClass;
+use RuntimeException;
 
+/**
+ * @property-read array $cardIdList
+ * @property-read int $playerId
+ * @property-read int $capacity
+ */
 final class InputData
 {
-    public int $capacity;
-    public stdClass $player;
-    public array $cards = [];
+    /**
+     * @var int[]
+     */
+    private array $cardIdList = [];
+    private int $playerId;
+    private int $capacity;
 
     private function __construct(array $values)
     {
+        $this->cardIdList = $values['cardIdList'];
+        $this->playerId = $values['playerId'];
         $this->capacity = $values['capacity'];
-        $this->player = $values['player'];
-        $this->cards = $values['cards'];
     }
 
     public static function create(array $data): InputData
     {
-        $data['player'] = (object)$data['player'];
-        $data['cards'] = array_map(fn ($card) => (object)$card, $data['cards']);
-
+        $data['playerId'] = (int)$data['playerId'];
+        $data['cardIdList'] = array_map(fn ($cardId) => (int)$cardId, $data['cardIdList']);
         return new InputData($data);
+    }
+
+    public function __get(string $name)
+    {
+        if (!property_exists($this, $name)) {
+            throw new RuntimeException(sprintf("Invalid Create Deck Input Data Property '%s'", $name));
+        }
+
+        return $this->{$name};
     }
 }

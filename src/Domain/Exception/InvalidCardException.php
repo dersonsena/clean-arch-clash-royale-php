@@ -36,4 +36,11 @@ final class InvalidCardException extends DomainException
             sprintf('Card elixir must be greater than %s, %s was given', Card::MIN_ELIXIR, $givenElixir)
         );
     }
+
+    public static function notFound(int $cardId)
+    {
+        return new self(
+            sprintf("Card with id '%s' not found.", $cardId)
+        );
+    }
 }

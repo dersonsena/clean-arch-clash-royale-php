@@ -14,4 +14,11 @@ final class InvalidPlayerException extends DomainException
             sprintf("Invalid nickname format in '%s'. Use letters and numbers only.", $givenNickname)
         );
     }
+
+    public static function notFound(int $playerId)
+    {
+        return new self(
+            sprintf("Player with id '%s' not found.", $playerId)
+        );
+    }
 }

@@ -2,6 +2,9 @@
 
 namespace Tests\Integration\Domain\UseCases\CreateDeck;
 
+use App\Adapter\Repository\Memory\CardMemoryRepository;
+use App\Adapter\Repository\Memory\DeckRepositoryMemory;
+use App\Adapter\Repository\Memory\PlayerMemoryRepository;
 use App\Domain\Exception\DeckCapacityException;
 use App\Domain\Exception\DeckCardDuplicateException;
 use App\Domain\Exception\InvalidCardException;
@@ -12,188 +15,98 @@ use Tests\TestCase;
 
 class CreateDeckTest extends TestCase
 {
-    public function testIfExceptionIsThrownWhenPlayerNicknameIsInvalid()
+    public static function makeSut(): CreateDeck
     {
-        $this->expectException(InvalidPlayerException::class);
-
-        $input = InputData::create([
-            'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => 'dada#{}/\[]$%&&',
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => 'Fisherman', 'level' => 6, 'elixir' => 3]
-            ]
-        ]);
-
-        $sut = new CreateDeck();
-        $sut->execute($input);
+        $playerRepo = new PlayerMemoryRepository();
+        $deckRepo = new DeckRepositoryMemory();
+        return new CreateDeck($playerRepo, $deckRepo);
     }
-
+    
     public function testIfExceptionIsThrownWhenDeckCapacityHasBeenReached()
     {
         $this->expectException(DeckCapacityException::class);
 
         $input = InputData::create([
             'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => $this->faker->userName,
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
+            'playerId' => $this->faker->randomNumber(),
+            'cardIdList' => [
+                // 12 cards
+                $this->faker->randomNumber(), $this->faker->randomNumber(), $this->faker->randomNumber(),
+                $this->faker->randomNumber(), $this->faker->randomNumber(), $this->faker->randomNumber(),
+                $this->faker->randomNumber(), $this->faker->randomNumber(), $this->faker->randomNumber(),
+                $this->faker->randomNumber(), $this->faker->randomNumber(), $this->faker->randomNumber()
             ]
         ]);
 
-        $sut = new CreateDeck();
-        $sut->execute($input);
+        self::makeSut()->execute($input);
     }
 
     public function testIfExceptionIsThrowWhenThereAreDuplicateCards()
     {
         $this->expectException(DeckCardDuplicateException::class);
 
-        $duplicateName = $this->faker->name();
+        $duplicateCardId = $this->faker->randomDigit();
 
         $input = InputData::create([
             'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => $this->faker->userName,
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => strtoupper($duplicateName), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => ucfirst($duplicateName), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3]
+            'playerId' => $this->faker->randomNumber(),
+            'cardIdList' => [
+                $duplicateCardId, $this->faker->randomNumber(), $this->faker->randomNumber(),
+                $this->faker->randomNumber(), $duplicateCardId, $this->faker->randomNumber(),
+                $this->faker->randomNumber(), $this->faker->randomNumber()
             ]
         ]);
 
-        $sut = new CreateDeck();
-        $sut->execute($input);
+        self::makeSut()->execute($input);
     }
 
-    public function testIfExceptionIsThrownWhenCardLevelIsGreaterThanLimit()
+    public function testIfExceptionIsThrownWhenPlayerDoesNotExists()
     {
-        $this->expectException(InvalidCardException::class);
+        $this->expectException(InvalidPlayerException::class);
+        $invalidPlayerId = $this->faker->numberBetween(10000);
 
         $input = InputData::create([
             'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => $this->faker->userName,
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 40, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3]
+            'playerId' => $invalidPlayerId,
+            'cardIdList' => [
+                $this->faker->numberBetween(), $this->faker->numberBetween(), $this->faker->numberBetween(),
+                $this->faker->numberBetween(), $this->faker->numberBetween(), $this->faker->numberBetween(),
+                $this->faker->numberBetween(), $this->faker->numberBetween()
             ]
         ]);
 
-        $sut = new CreateDeck();
-        $sut->execute($input);
+        self::makeSut()->execute($input);
     }
 
-    public function testIfExceptionIsThrownWhenCardLevelIsLessThanLimit()
+    public function testIfExceptionIsThrownWhenAtLeastOneCardDoesNotExists()
     {
         $this->expectException(InvalidCardException::class);
+        $invalidCardId = $this->faker->numberBetween(10000);
 
         $input = InputData::create([
             'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => $this->faker->userName,
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => -2, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3]
+            'playerId' => $this->faker->numberBetween(1, 3),
+            'cardIdList' => [
+                $this->faker->numberBetween(), $this->faker->numberBetween(), $this->faker->numberBetween(),
+                $this->faker->numberBetween(), $this->faker->numberBetween(), $this->faker->numberBetween(),
+                $invalidCardId, $this->faker->numberBetween()
             ]
         ]);
 
-        $sut = new CreateDeck();
-        $sut->execute($input);
+        self::makeSut()->execute($input);
     }
 
-    public function testIfExceptionIsThrownWhenCardElixirIsGreaterThanLimit()
+    public function testIfDeckIsCreatedCorrectly()
     {
-        $this->expectException(InvalidCardException::class);
-
         $input = InputData::create([
             'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => $this->faker->userName,
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 20],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3]
-            ]
+            'playerId' => $this->faker->numberBetween(1, 3),
+            'cardIdList' => [1, 2, 3, 4, 5, 6, 7, 8]
         ]);
 
-        $sut = new CreateDeck();
-        $sut->execute($input);
-    }
+        $result = self::makeSut()->execute($input);
 
-    public function testIfExceptionIsThrownWhenCardElixirIsLessThanLimit()
-    {
-        $this->expectException(InvalidCardException::class);
-
-        $input = InputData::create([
-            'capacity' => 8,
-            'player' => [
-                'name' => $this->faker->name(),
-                'nickname' => $this->faker->userName,
-                'clan' => $this->faker->name()
-            ],
-            'cards' => [
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => -2],
-                ['name' => $this->faker->name(), 'level' => 6, 'elixir' => 3]
-            ]
-        ]);
-
-        $sut = new CreateDeck();
-        $sut->execute($input);
+        $this->assertNotNull($result->id);
+        $this->assertSame($result->player->id, $input->playerId);
     }
 }

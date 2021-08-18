@@ -5,13 +5,22 @@ declare(strict_types=1);
 namespace App\Domain\Entity\Deck;
 
 use App\Domain\Exception\InvalidPlayerException;
+use RuntimeException;
 
+/**
+ * @property-read string|int|null $id
+ * @property-read string $nickname
+ * @property-read string $name
+ * @property-read string $clan
+ * @property-read PlayerEvent[] $events
+ */
 final class Player
 {
-    public string|int|null $id;
-    public string $nickname;
-    public string $name;
-    public string $clan;
+    private string|int|null $id;
+    private string $nickname;
+    private string $name;
+    private string $clan;
+    private array $events;
 
     private function __construct(array $values)
     {
@@ -19,6 +28,7 @@ final class Player
         $this->nickname = $values['nickname'];
         $this->name = $values['name'];
         $this->clan = $values['clan'];
+        $this->events = [];
     }
 
     public static function create(array $values): Player
@@ -30,5 +40,26 @@ final class Player
         }
 
         return new Player($values);
+    }
+
+    public function getTotalTrophies(): int
+    {
+        if (empty($this->events)) {
+            return 0;
+        }
+    }
+
+    public function addEvent(PlayerEvent $event)
+    {
+        $this->events[] = $event;
+    }
+
+    public function __get(string $name)
+    {
+        if (!property_exists($this, $name)) {
+            throw new RuntimeException(sprintf("Invalid Player Property '%s'", $name));
+        }
+
+        return $this->{$name};
     }
 }
