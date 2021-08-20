@@ -12,10 +12,12 @@ use RuntimeException;
  * @property-read string $nickname
  * @property-read string $name
  * @property-read string $clan
- * @property-read PlayerEvent[] $events
  */
 final class Player
 {
+    public const POINTS_PER_VICTORY = 50;
+    public const POINTS_PER_DEFEAT = 5;
+
     private string|int|null $id;
     private string $nickname;
     private string $name;
@@ -42,11 +44,26 @@ final class Player
         return new Player($values);
     }
 
-    public function getTotalTrophies(): int
+    public function getTotalTrophy(): int
     {
+        $total = 0;
+
         if (empty($this->events)) {
-            return 0;
+            return $total;
         }
+
+        foreach ($this->events as $event) {
+            if ($event === PlayerEvent::BATTLE_WON) {
+                $total += self::POINTS_PER_VICTORY;
+                continue;
+            }
+
+            if ($event === PlayerEvent::BATTLE_LOST) {
+                $total -= self::POINTS_PER_DEFEAT;
+            }
+        }
+
+        return $total >= 0 ? $total : 0;
     }
 
     public function addEvent(PlayerEvent $event)
@@ -56,7 +73,7 @@ final class Player
 
     public function __get(string $name)
     {
-        if (!property_exists($this, $name)) {
+        if (!property_exists($this, $name) || $name === 'events') {
             throw new RuntimeException(sprintf("Invalid Player Property '%s'", $name));
         }
 

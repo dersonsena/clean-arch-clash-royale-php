@@ -13,12 +13,14 @@ final class OutputData
 {
     private string|int $id;
     private PlayerModel $player;
+    private int $capacity;
     private float $elixirAverage;
 
     private function __construct(array $values)
     {
         $this->id = $values['id'];
         $this->player = $values['player'];
+        $this->capacity = $values['capacity'];
         $this->elixirAverage = $values['elixirAverage'];
     }
 

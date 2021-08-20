@@ -30,15 +30,16 @@ final class CreateDeck
 
         $player = $this->playerRepo->getById($inputData->playerId);
         $playerCards = $this->playerRepo->getCardsByIdList($inputData->cardIdList);
-        $deck = $this->deckRepo->save($player, $playerCards);
+        $deck = $this->deckRepo->save($inputData->capacity, $player, $playerCards);
 
         return OutputData::create([
             'id' => $deck->id,
+            'capacity' => $deck->capacity,
             'elixirAverage' => $deck->getElixirAverage(),
             'player' => PlayerModel::create([
                 'id' => $player->id,
                 'name' => $player->name,
-                'trophy' => $player->getTotalTrophies()
+                'trophy' => $player->getTotalTrophy()
             ])
         ]);
     }

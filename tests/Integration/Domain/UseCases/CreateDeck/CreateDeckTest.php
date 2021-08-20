@@ -2,7 +2,6 @@
 
 namespace Tests\Integration\Domain\UseCases\CreateDeck;
 
-use App\Adapter\Repository\Memory\CardMemoryRepository;
 use App\Adapter\Repository\Memory\DeckRepositoryMemory;
 use App\Adapter\Repository\Memory\PlayerMemoryRepository;
 use App\Domain\Exception\DeckCapacityException;

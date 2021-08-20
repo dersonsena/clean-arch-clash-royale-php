@@ -11,9 +11,11 @@ use App\Domain\Entity\Deck\PlayerCard;
 interface DeckRepository
 {
     /**
+     * @param int $capacity
      * @param Player $player
      * @param PlayerCard[] $playerCards
      * @return mixed
      */
-    public function save(Player $player, array $playerCards): Deck;
+    public function save(int $capacity, Player $player, array $playerCards): Deck;
+    public function getById(int $deckId): ?Deck;
 }

@@ -9,11 +9,13 @@ use RuntimeException;
 /**
  * @property-read int $id
  * @property-read Player $player
+ * @property-read int $capacity
  */
 final class Deck
 {
     private int $id;
     private Player $player;
+    private int $capacity;
 
     /**
      * @var PlayerCard[]
@@ -24,12 +26,14 @@ final class Deck
     {
         $this->id = $values['id'];
         $this->player = $values['player'];
+        $this->capacity = $values['capacity'];
         $this->playerCards = $values['playerCards'];
     }
 
     public static function create(array $values): self
     {
         $values['id'] = (int)$values['id'];
+        $values['capacity'] = (int)$values['capacity'];
         return new self($values);
     }
 

@@ -12,7 +12,7 @@ final class PlayerEvent
     private string $type;
     private array $data;
 
-    public function __construct(string $type, array $data)
+    public function __construct(string $type, array $data = [])
     {
         $this->type = $type;
         $this->data = $data;
