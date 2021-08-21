@@ -7,8 +7,8 @@ namespace App\Adapter\Controller;
 use App\Domain\Repository\DeckRepository;
 use App\Domain\UseCase\DoBattle\InputData;
 use App\Domain\UseCase\DoBattle\DoBattle;
+use Psr\Http\Message\RequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class DoBattleController implements Controller
 {

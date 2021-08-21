@@ -3,6 +3,7 @@
 use App\Adapter\Controller\CreateDeckController;
 use App\Adapter\Repository\Memory\DeckRepositoryMemory;
 use App\Adapter\Repository\Memory\PlayerMemoryRepository;
+use App\Infra\Http\PlugRoutePsrAdapter;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -23,41 +24,32 @@ $route->group(['prefix' => '/api'], function ($route) {
         $deckRepo = new DeckRepositoryMemory();
         $controller = new CreateDeckController($playerRepo, $deckRepo);
 
-        /*$psr17Factory = new Psr17Factory();
-        $requestBody = $psr17Factory->createStream(json_encode($request->all()));
-        $requestPsr7 = $psr17Factory->createRequest('POST', "http://localhost:8081/{$request->getUrl()}")
-            ->withHeader('Content-Type', 'application/json')
-            ->withBody($requestBody);
+        $requestPsr = PlugRoutePsrAdapter::adaptRequest($request);
+        $responsePsr = PlugRoutePsrAdapter::adaptResponse($response);
 
-        $responsePsr7 = $psr17Factory->createResponse(200);*/
+        $controllerResponse = $controller->handle($requestPsr, $responsePsr);
+        $responseAsArray = json_decode($controllerResponse->getBody(), true);
 
-        $requestPsr7 = new \GuzzleHttp\Psr7\Request(
-            'POST',
-            "http://localhost:8081/{$request->getUrl()}",
-            ['Content-Type', "application/json"],
-            json_encode($request->all())
-        );
+        $response->setStatusCode($controllerResponse->getStatusCode())
+            ->addHeaders($controllerResponse->getHeaders());
 
-        $responsePsr7 = new Response();
-        $result = $controller->handle($requestPsr7, $responsePsr7);
-
-        echo $result->getBody()->getContents();
-        die;
+        echo $response->json($responseAsArray);
     });
 
     $route->post('/do-battle', function(\PlugRoute\Http\Request $request, \PlugRoute\Http\Response $response) {
         $deckRepo = new DeckRepositoryMemory();
-        $controller = new App\Domain\UseCase\DoBattle\DoBattle($deckRepo);
+        $controller = new \App\Adapter\Controller\DoBattleController($deckRepo);
 
-        $psr17Factory = new Psr17Factory();
-        $requestBody = $psr17Factory->createStream(json_encode($request->all()));
-        $requestPsr7 = $psr17Factory->createRequest('POST', "http://localhost:8081/{$request->getUrl()}")
-            ->withHeader('Content-Type', 'application/json')
-            ->withBody($requestBody);
+        $requestPsr = PlugRoutePsrAdapter::adaptRequest($request);
+        $responsePsr = PlugRoutePsrAdapter::adaptResponse($response);
 
-        $responsePsr7 = $psr17Factory->createResponse(200);
+        $controllerResponse = $controller->handle($requestPsr, $responsePsr);
+        $responseAsArray = json_decode($controllerResponse->getBody(), true);
 
-        return $controller->handle($requestPsr7, $responsePsr7);
+        $response->setStatusCode($controllerResponse->getStatusCode())
+            ->addHeaders($controllerResponse->getHeaders());
+
+        echo $response->json($responseAsArray);
     });
 });
 

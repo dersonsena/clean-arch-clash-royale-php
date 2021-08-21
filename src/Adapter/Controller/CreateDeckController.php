@@ -45,8 +45,11 @@ final class CreateDeckController implements Controller
             'player' => $result->player->name,
         ]);
 
-        $response = $response->withHeader('Content-Type', 'application/json')
+        $response = $response
+            ->withHeader('Content-Type', 'application/json')
             ->withStatus(401);
+
+        $response->getBody()->write($responsePayload);
 
         return $response;
     }
